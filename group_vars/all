@@ -1,0 +1,13 @@
+# sources_type: proxy
+# http://docs.ansible.com/ansible/playbooks_environment.html
+# you'll need use per task
+#
+# tasks:
+#   - shell: echo $http_proxy
+#     environment: proxy_env
+
+proxy_env:
+    http_proxy: http://87.254.212.121:8080
+    https_proxy: https://87.254.212.121:8080
+
+default_user: nokia

@@ -1,0 +1,8 @@
+---
+- name: "Test packages"
+  hosts: vmware
+  remote_user: nokia
+  sudo: yes
+  roles:
+    - common
+    - selenium

@@ -1,0 +1,32 @@
+---
+- name: "install default packages"
+  sudo: yes
+  apt: name={{ item }} state=latest
+  with_items:
+      - vim
+      - python-dev
+      - htop
+      - screen
+      - python-pycurl
+      - python-lxml
+      - git-core
+      - libncurses5-dev
+      - build-essential
+      - unzip
+      - curl
+      - libcurl3
+      - libssl1.0.0
+      - libsqlite3-0
+      - libsqlite3-dev
+
+- name: copy vim configuration
+  copy: src=roles/common/files/vimrc dest=/home/{{ default_user }}/.vimrc owner={{ default_user }} group={{ default_user }}
+
+- name: creates .vim directory
+  file: path=/home/{{ default_user }}/.vim state=directory owner={{ default_user }} group={{ default_user }}
+
+- name: copy screen configuration
+  copy: src=roles/common/files/screenrc dest=/home/{{ default_user }}/.screenrc owner={{ default_user }} group={{ default_user }}
+
+- name: copy git configuration
+  copy: src=roles/common/files/gitconfig dest=/home/{{ default_user }}/.gitconfig owner={{ default_user }} group={{ default_user }}

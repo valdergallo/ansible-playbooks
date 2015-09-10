@@ -1,0 +1,8 @@
+---
+- name: Install all the packages and stuff required for an selenium server
+  hosts: all
+  user: nokia
+  sudo: yes
+  roles:
+    - common
+    - selenium

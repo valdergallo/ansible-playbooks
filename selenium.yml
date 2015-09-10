@@ -1,0 +1,7 @@
+---
+- name: "Install selenium server"
+  hosts: all
+  remote_user: nokia
+  sudo: yes
+  roles:
+    - selenium
