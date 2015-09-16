@@ -1,0 +1,17 @@
+- name: add http-proxy for internal hosts
+  lineinfile: dest=/etc/environment regexp="^http_proxy" line="http_proxy=\"{{ proxy_env.http_proxy }}/\""
+
+- name: add HTTP-PROXY for internal hosts
+  lineinfile: dest=/etc/environment regexp="^HTTP_PROXY" line="HTTP_PROXY=\"{{ proxy_env.http_proxy }}/\""
+
+- name: add https-proxy for internal hosts
+  lineinfile: dest=/etc/environment regexp="^https_proxy" line="https_proxy=\"{{ proxy_env.https_proxy }}/\""
+
+- name: add HTTPS-PROXY for internal hosts
+  lineinfile: dest=/etc/environment regexp="^HTTPS_PROXY" line="HTTPS_PROXY=\"{{ proxy_env.https_proxy }}/\""
+
+- name: add no_proxy for internal hosts
+  lineinfile: dest=/etc/environment regexp="^no_proxy" line="no_proxy=\"localhost,127.0.0.1,localaddress,.localdomain.com\""
+
+- name: add NO_PROXY for internal hosts
+  lineinfile: dest=/etc/environment regexp="^NO_PROXY" line="NO_PROXY=\"localhost,127.0.0.1,localaddress,.localdomain.com\""

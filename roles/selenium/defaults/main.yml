@@ -24,3 +24,58 @@ selenium_xvfb_extra_args: '-screen 0 1300x700x24 -ac'
 
 # Driver informations
 selenium_driver_list: []
+
+selenium_vnc_extra_args: '-shared -xkb -skip_lockkeys -forever -noxdamage -passwd nokia'
+
+supervisor:
+  runtime:
+    dir: /var/tmp/supervisor
+    nodaemon: "false"
+    socket: supervisord.sock
+    pidfile: supervisord.pid
+
+  config:
+    conf: /etc/supervisor/conf.d
+    dir: /etc/supervisor
+    file: /etc/supervisord.conf
+    default: /etc/default.supervisord.conf
+
+  log:
+    dir: /var/log/supervisor
+    file: supervisord.log
+    level: info
+
+  http:
+    file: status.ini
+    port: 127.0.0.1:9001
+    username: nokia
+    password: nokia
+
+  programs:
+    - file: selenium_server.ini
+      name: selenium_server
+      values:
+        - autostart: "true"
+        - autorestart: "true"
+        - stdout_logfile_maxbytes: "1MB"
+        - command: "/usr/bin/java {{ selenium_java_opts }} -jar {{ selenium_server_path }}/{{ selenium_jar_file }} -port {{ selenium_port }}"
+        - stderr_logfile: "{{ selenium_log_dir }}/selenium_server.log"
+        - stdout_logfile: "{{ selenium_log_dir }}/selenium_server.log"
+    - file: selenium_vnc.ini
+      name: selenium_vnc
+      values:
+        - autostart: "true"
+        - autorestart: "true"
+        - stdout_logfile_maxbytes: "1MB"
+        - command: "x11vnc -display {{ selenium_display }} {{ selenium_vnc_extra_args }}"
+        - stderr_logfile: "{{ selenium_log_dir }}/x11vnc.log"
+        - stdout_logfile: "{{ selenium_log_dir }}/x11vnc.log"
+    - file: selenium_vxfb.ini
+      name: selenium_vxfb
+      values:
+        - autostart: "true"
+        - autorestart: "true"
+        - stdout_logfile_maxbytes: "1MB"
+        - command: "/usr/bin/Xvfb {{ selenium_display }} {{ selenium_xvfb_extra_args }}"
+        - stderr_logfile: "{{ selenium_log_dir }}/vxfb.log"
+        - stdout_logfile: "{{ selenium_log_dir }}/vxfb.log"

@@ -1,5 +1,5 @@
 ---
-- name: "install default packages"
+- name: "Install default packages for Ubuntu/Debian"
   sudo: yes
   apt: name={{ item }} state=latest
   with_items:
@@ -14,19 +14,61 @@
       - build-essential
       - unzip
       - curl
+      - git
       - libcurl3
       - libssl1.0.0
       - libsqlite3-0
       - libsqlite3-dev
+  when: ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'
+
+# Red Hat configuration ---------------------------------------------------
+
+- name: "Install default packages for CentOS/Red Hat"
+  sudo: yes
+  yum: name={{ item }} state=latest
+  with_items:
+      - vim
+      - bzip2
+      - git
+      - lsof
+      - screen
+      - net-tools
+      - nmap
+      - rsync
+      - tar
+      - autoconf
+      - python-devel.x86_64
+      - unzip
+      - curl
+      - httpd-tools
+      - libxml2-devel
+      - libxslt-devel
+      - readline-devel.x86_64
+      - openssl-devel
+      - ncurses-devel
+      - poppler-utils
+      - autoconf
+      - make
+      - automake
+      - gcc
+      - gcc-c++
+      - kernel-devel
+      - redhat-lsb-core.x86_64
+
+  when: ansible_distribution == 'CentOS' or ansible_distribution == 'Red Hat Enterprise Linux'
+
+# Default configuration ---------------------------------------------------
 
 - name: copy vim configuration
-  copy: src=roles/common/files/vimrc dest=/home/{{ default_user }}/.vimrc owner={{ default_user }} group={{ default_user }}
+  copy: src=roles/common/files/vimrc dest={{ default_home_folder }}/{{ default_user }}/.vimrc owner={{ default_user }} group={{ default_user }}
 
 - name: creates .vim directory
-  file: path=/home/{{ default_user }}/.vim state=directory owner={{ default_user }} group={{ default_user }}
+  file: path={{ default_home_folder }}/{{ default_user }}/.vim state=directory owner={{ default_user }} group={{ default_user }}
 
 - name: copy screen configuration
-  copy: src=roles/common/files/screenrc dest=/home/{{ default_user }}/.screenrc owner={{ default_user }} group={{ default_user }}
+  copy: src=roles/common/files/screenrc dest={{ default_home_folder }}/{{ default_user }}/.screenrc owner={{ default_user }} group={{ default_user }}
 
 - name: copy git configuration
-  copy: src=roles/common/files/gitconfig dest=/home/{{ default_user }}/.gitconfig owner={{ default_user }} group={{ default_user }}
+  copy: src=roles/common/files/gitconfig dest={{ default_home_folder }}/{{ default_user }}/.gitconfig owner={{ default_user }} group={{ default_user }}
+
+- include: configure_proxy.yml

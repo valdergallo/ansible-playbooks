@@ -29,3 +29,16 @@
     group: "{{ selenium_group }}"
     state: present
   sudo: yes
+
+- name: Ensure Supervisor directories are present
+  file:
+    path: "{{ item }}"
+    mode: 0755
+    state: directory
+  sudo: yes
+  with_items:
+    - "{{ supervisor.config.dir }}"
+    - "{{ supervisor.config.conf }}"
+    - "{{ supervisor.log.dir }}"
+    - "{{supervisor.runtime.dir}}"
+  tags: supervisor

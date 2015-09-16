@@ -1,0 +1,102 @@
+---
+- name: install python setup tools
+  yum: name={{ item }}    state=installed
+  with_items:
+    - python-pip
+    - python-setuptools
+  tags: supervisor
+  when: ansible_distribution == 'CentOS' or ansible_distribution == 'Red Hat Enterprise Linux'
+
+- name: install python setup tools
+  apt: name={{ item }}    state=installed
+  with_items:
+    - python-pip
+    - python-setuptools
+  tags: supervisor
+  when: ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'
+
+- name: install supervisor with easy_install
+  shell: easy_install supervisor
+  sudo: "true"
+  tags: supervisor
+  environment: proxy_env
+
+- name: configure supervisord
+  shell: echo_supervisord_conf > {{supervisor.config.file}}
+  tags: supervisor
+
+- name: backup default configuration
+  shell: cp {{supervisor.config.file}} {{supervisor.config.default}} creates={{supervisor.config.default}}
+  tags: supervisor
+
+- name: configure runtime and log
+  ini_file: dest={{supervisor.config.file}}
+            section={{item.section}}
+            option={{item.option}}
+            value={{item.value}}
+  with_items:
+      - { section: unix_http_server, option: file, value: "{{supervisor.runtime.dir}}/{{supervisor.runtime.socket}}" }
+      - { section: supervisorctl, option: serverurl, value: "unix://{{supervisor.runtime.dir}}/{{supervisor.runtime.socket}}" }
+      - { section: supervisord, option: pidfile, value: "{{supervisor.runtime.dir}}/{{supervisor.runtime.pidfile}}" }
+      - { section: supervisord, option: nodaemon, value: "{{supervisor.runtime.nodaemon}}" }
+      - { section: supervisord, option: logfile, value: "{{supervisor.log.dir}}/{{supervisor.log.file}}" }
+      - { section: supervisord, option: loglevel, value: "{{supervisor.log.level}}" }
+      - { section: include, option: files, value: "{{supervisor.config.conf}}" }
+  tags: supervisor
+
+- name: tell supervisor to include relative configurations directory
+  sudo: "true"
+  ini_file: dest={{supervisor.config.file}}
+            section=include
+            option=files
+            value={{supervisor.config.conf}}/*.ini
+            state=present
+  tags: supervisor
+
+- name: configure web ui status checking server
+  ini_file: dest={{supervisor.config.conf}}/{{supervisor.http.file}}
+            section=inet_http_server
+            option={{item.key}}
+            value={{item.value}}
+            state=present
+  with_dict: supervisor.http
+  tags:
+      - supervisor-http
+      - supervisor
+
+- name: add programs
+  ini_file: dest={{supervisor.config.conf}}/{{item.0.file}}
+            section="program:{{item.0.name}}"
+            option="{{item.1.keys()[0]}}"
+            value="{{item.1.values()[0]}}"
+            state=present
+  with_subelements:
+      - supervisor.programs
+      - values
+  when: supervisor.programs is defined
+  tags:
+      - supervisor-programs
+      - supervisor
+
+- name: Create supervisord init script
+  template:
+    src=roles/selenium/templates/ubuntu/supervisor.sh.j2
+    dest=/etc/init.d/supervisor
+    mode=755
+  when: ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'
+
+- name: Create supervisord init script
+  template:
+    src=roles/selenium/templates/centos/supervisor.sh.j2
+    dest=/etc/init.d/supervisor
+    mode=755
+  when: ansible_distribution == 'CentOS' or ansible_distribution == 'Red Hat Enterprise Linux'
+
+- name: Add supervisord to init
+  sudo: yes
+  service:
+    name: supervisor
+    state: started
+    enabled: yes
+  tags:
+    - supervisor

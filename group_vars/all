@@ -11,3 +11,4 @@ proxy_env:
     https_proxy: https://87.254.212.121:8080
 
 default_user: nokia
+default_home_folder: /home

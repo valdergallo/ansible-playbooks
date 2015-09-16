@@ -1,5 +1,5 @@
 ---
-- name: "install packages for selenium server"
+- name: "Install packages for selenium server for Ubuntu/Debian"
   apt: name={{ item }} state=latest
   with_items:
       - openjdk-7-jdk
@@ -12,6 +12,16 @@
       - xfonts-75dpi
       - xfonts-scalable
       - xfonts-cyrillic
+  when: ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'
+
+- name: "Install packages for selenium server or CentOS/Red Hat"
+  yum: name={{ item }} state=latest
+  with_items:
+      - java-1.7.0-openjdk
+      - firefox
+      - xorg-x11-server-Xvfb
+      - x11vnc
+  when: ansible_distribution == 'CentOS' or ansible_distribution == 'Red Hat Enterprise Linux'
 
 - include: before_install.yml
 
@@ -29,4 +39,4 @@
 - name: Create symlink
   file: src={{ selenium_server_path }}/{{ selenium_jar_file }}  dest={{ selenium_server_path }}/{{ selenium_default_name }} state=link owner={{ selenium_user }} group={{ selenium_group }}
 
-- include: services_configuration.yml
+- include: supervisord.yml

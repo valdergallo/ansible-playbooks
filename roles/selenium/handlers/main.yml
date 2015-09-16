@@ -1,10 +1,20 @@
 ---
 
 - name: Restart Selenium services
-  service:
-    name: "{{ item }}"
-    state: restarted
-  sudo: yes
-  with_items:
-    - xvfb-selenium
-    - selenium
+  shell: supervisorctl restart all
+
+- name: reload supervisor
+  service: name=supervisor state=reloaded
+
+- name: reread supervisord config
+  shell: supervisorctl reread
+
+- name: add programs to process group
+  shell: supervisorctl add {{item.name}}
+  when: supervisor.programs is defined
+  with_items: supervisor.programs
+
+- name: change supervisord programs states
+  shell: supervisorctl start {{item.name}}
+  when: supervisor.programs is defined
+  with_items: supervisor.programs
