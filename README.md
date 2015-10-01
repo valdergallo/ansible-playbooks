@@ -13,14 +13,30 @@
 - Install Vxfb virtual server
 - Configure vxfb on start
 - Configure vnc11x to conect in vxfb
+- Configure Firefox Default Profile to *zina*
+- Configure Fluxbox
+- Configure Firewalld to open doors:
+    - 9002 (supervisor)
+    - 5900 (vnc)
+    - 4444 (selenium server)
+    - 6040 (Xvfb)
+
 
 ## Run Ansible playbooks
 
 ```
 
+    pip install ansible
     ansible-playbook vmware.yml -i hosts --ask-sudo-pass
 
 ```
+
+## Supervisor Site Admin
+ - [http://vmware:9002/](http://vmware:9002/) (centos server)
+ - User: nokia/nokia
+
+## Selenium Site Admin
+ - [http://vmware:4444/wd/hub/static/resource/hub.html](http://vmware:4444/wd/hub/static/resource/hub.html) (centos server)
 
 ## Playbooks
 

@@ -1,5 +1,5 @@
 ---
-- name: "VMware packages"
+- name: "Test packages"
   hosts: vmware
   remote_user: nokia
   sudo: yes
