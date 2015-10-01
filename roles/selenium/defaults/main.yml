@@ -1,31 +1,29 @@
-selenium_run_at_startup: yes
-selenium_server_major_version: "2.47" # Selenium client major version
-selenium_server_minor_version: ".0" # Selenium client minor version
-selenium_server_version: "{{ selenium_server_major_version }}{{ selenium_server_minor_version }}" # Selenium client
+---
+selenium_minor_version: ".0"
+selenium_major_version: "2.47"
+selenium_version: "{{ selenium_major_version }}{{ selenium_minor_version }}"
+selenium_jar_file: "selenium-server-standalone-{{ selenium_version }}.jar"
 
-selenium_download_url: "http://selenium-release.storage.googleapis.com/{{ selenium_server_major_version }}/{{ selenium_jar_file }}"
-selenium_jar_file: "selenium-server-standalone-{{ selenium_server_version }}.jar"
-selenium_default_name: "selenium-server.jar"
-selenium_server_path: '/opt/selenium'
-
-selenium_user: selenium
-selenium_group: selenium
-
-selenium_log_dir: /var/log/selenium
-
-selenium_hub: ''
-selenium_java_opts: '-Xmx256m -Djava.security.egd=file:/dev/urandom'
-selenium_extra_args: ''
-selenium_port: '4444'
-
-selenium_display: ':40'
-
-selenium_xvfb_extra_args: '-screen 0 1300x700x24 -ac'
-
-# Driver informations
-selenium_driver_list: []
-
-selenium_vnc_extra_args: '-shared -xkb -skip_lockkeys -forever -noxdamage -passwd nokia'
+selenium_server:
+  driver_list: []
+  download_url: "http://selenium-release.storage.googleapis.com/{{ selenium_major_version }}/{{ selenium_jar_file }}"
+  group: selenium
+  user: selenium
+  jar_file: "selenium-server-standalone-{{ selenium_version }}.jar"
+  log_dir: /var/log/selenium
+  port: "4444"
+  run_at_startup: true
+  server_path: /opt/selenium
+  version: "{{ selenium_major_version }}{{ selenium_minor_version }}"
+  args:
+    extra_args: "-hub -cleanUpCycle 2147483647 -Dwebdriver.firefox.profile=zina -browserTimeout=600"  # Java MAX_INT 25 days
+    hub: ""
+    java_opts: "-Xmx256m -Djava.security.egd=file:/dev/urandom"
+  vnc:
+    extra_args: "-shared -xkb -skip_lockkeys -forever -noxdamage -passwd nokia"
+  xvfb:
+    display: ":40"
+    extra_args: "-screen 0 1200x1000x24 -ac"
 
 supervisor:
   runtime:
@@ -33,49 +31,68 @@ supervisor:
     nodaemon: "false"
     socket: supervisord.sock
     pidfile: supervisord.pid
-
   config:
     conf: /etc/supervisor/conf.d
     dir: /etc/supervisor
     file: /etc/supervisord.conf
     default: /etc/default.supervisord.conf
-
   log:
     dir: /var/log/supervisor
     file: supervisord.log
     level: info
-
   http:
     file: status.ini
-    port: 127.0.0.1:9001
+    port: 0.0.0.0:9002
     username: nokia
     password: nokia
-
   programs:
     - file: selenium_server.ini
       name: selenium_server
       values:
         - autostart: "true"
         - autorestart: "true"
+        - user: selenium
         - stdout_logfile_maxbytes: "1MB"
-        - command: "/usr/bin/java {{ selenium_java_opts }} -jar {{ selenium_server_path }}/{{ selenium_jar_file }} -port {{ selenium_port }}"
-        - stderr_logfile: "{{ selenium_log_dir }}/selenium_server.log"
-        - stdout_logfile: "{{ selenium_log_dir }}/selenium_server.log"
+        - command: "/usr/bin/java {{ selenium_server.args.java_opts }} -jar {{ selenium_server.server_path }}/{{ selenium_server.jar_file }} -port {{ selenium_server.port }} {{ selenium_server.args.extra_args }}"
+        - stderr_logfile: "{{ selenium_server.log_dir }}/selenium_server.log"
+        - stdout_logfile: "{{ selenium_server.log_dir }}/selenium_server.log"
+        - environment: "DISPLAY={{ selenium_server.xvfb.display }}, HOME={{ default_home_folder }}/selenium/"
+    - file: selenium_fluxbox.ini
+      name: selenium_fluxbox
+      values:
+        - autostart: "true"
+        - autorestart: "true"
+        - user: root
+        - stdout_logfile_maxbytes: "1MB"
+        - command: "/usr/bin/fluxbox -display {{ selenium_server.xvfb.display }}"
+        - stderr_logfile: "{{ selenium_server.log_dir }}/fluxbox.log"
+        - stdout_logfile: "{{ selenium_server.log_dir }}/fluxbox.log"
     - file: selenium_vnc.ini
       name: selenium_vnc
       values:
         - autostart: "true"
         - autorestart: "true"
+        - user: root
         - stdout_logfile_maxbytes: "1MB"
-        - command: "x11vnc -display {{ selenium_display }} {{ selenium_vnc_extra_args }}"
-        - stderr_logfile: "{{ selenium_log_dir }}/x11vnc.log"
-        - stdout_logfile: "{{ selenium_log_dir }}/x11vnc.log"
+        - command: "x11vnc -display {{ selenium_server.xvfb.display }} {{ selenium_server.vnc.extra_args }}"
+        - stderr_logfile: "{{ selenium_server.log_dir }}/x11vnc.log"
+        - stdout_logfile: "{{ selenium_server.log_dir }}/x11vnc.log"
     - file: selenium_vxfb.ini
       name: selenium_vxfb
       values:
         - autostart: "true"
         - autorestart: "true"
+        - user: root
         - stdout_logfile_maxbytes: "1MB"
-        - command: "/usr/bin/Xvfb {{ selenium_display }} {{ selenium_xvfb_extra_args }}"
-        - stderr_logfile: "{{ selenium_log_dir }}/vxfb.log"
-        - stdout_logfile: "{{ selenium_log_dir }}/vxfb.log"
+        - command: "/usr/bin/Xvfb {{ selenium_server.xvfb.display }} {{ selenium_server.xvfb.extra_args }}"
+        - stderr_logfile: "{{ selenium_server.log_dir }}/vxfb.log"
+        - stdout_logfile: "{{ selenium_server.log_dir }}/vxfb.log"
+
+fluxbox:
+  download_url: http://sourceforge.net/projects/fluxbox/files/fluxbox/1.3.7/fluxbox-1.3.7.tar.gz
+  dir: /opt/fluxbox/
+  tar_name: fluxbox-1.3.7
+
+mozilla_profile: zina
+mozilla_dir: "/opt/firefox-profile/{{ mozilla_profile }}/"
+mozilla_prefs: "{{ mozilla_dir }}prefs.js"

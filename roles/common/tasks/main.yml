@@ -1,4 +1,6 @@
 ---
+- include: configure_proxy.yml
+
 - name: "Install default packages for Ubuntu/Debian"
   sudo: yes
   apt: name={{ item }} state=latest
@@ -70,5 +72,3 @@
 
 - name: copy git configuration
   copy: src=roles/common/files/gitconfig dest={{ default_home_folder }}/{{ default_user }}/.gitconfig owner={{ default_user }} group={{ default_user }}
-
-- include: configure_proxy.yml

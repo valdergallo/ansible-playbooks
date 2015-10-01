@@ -1,0 +1,18 @@
+---
+- name: Open doors in centos7
+  sudo: true
+  firewalld:
+    port: '{{ item }}/tcp'
+    permanent: 'true'
+    state: enabled
+  with_items:
+    - 9002
+    - 5900
+    - 4444
+    - 6040
+  when: ansible_distribution == 'CentOS' or ansible_distribution == 'Red Hat Enterprise Linux'
+
+- name: Reload firewalld in centos7
+  sudo: true
+  command: "firewall-cmd --reload"
+  when: ansible_distribution == 'CentOS' or ansible_distribution == 'Red Hat Enterprise Linux'

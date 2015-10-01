@@ -1,0 +1,45 @@
+---
+- name: "Install packages for selenium server for Ubuntu/Debian"
+  apt: name=firefox state=latest
+  when: ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'
+
+- name: "Install packages for selenium server for Centos/RedHat"
+  yum: name=firefox state=latest
+  when: ansible_distribution == 'CentOS' or ansible_distribution == 'Red Hat Enterprise Linux'
+
+- name: run create profile zina
+  shell: "firefox -CreateProfile '{{ item }}'"
+  executable: "selenium"
+  with_items:
+    - "zina {{ mozilla_dir }}"
+
+- name: update firefox preferences for zina
+  lineinfile:
+    dest="{{ mozilla_prefs }}"
+    regexp="{{ item.name }}"
+    line="user_pref('{{ item.name }}', {{ item.value }});"
+  with_items:
+    - { name: 'network.proxy.type', value: 1 }
+    - { name: 'network.proxy.backup.ftp', value: "'{{ proxy_env.ip }}'" }
+    - { name: 'network.proxy.backup.ftp_port', value: "{{ proxy_env.port }}" }
+    - { name: 'network.proxy.backup.http', value: "'{{ proxy_env.ip }}'" }
+    - { name: 'network.proxy.backup.http_port', value: "{{ proxy_env.port }}" }
+    - { name: 'network.proxy.backup.socks', value: "'{{ proxy_env.ip }}'" }
+    - { name: 'network.proxy.backup.socks_port', value: "{{ proxy_env.port }}" }
+    - { name: 'network.proxy.backup.ssl', value: "'{{ proxy_env.ip }}'" }
+    - { name: 'network.proxy.backup.ssl_port', value: "{{ proxy_env.port }}" }
+    - { name: 'network.proxy.ftp', value: "'{{ proxy_env.ip }}'" }
+    - { name: 'network.proxy.ftp_port', value: "{{ proxy_env.port }}" }
+    - { name: 'network.proxy.http', value: "'{{ proxy_env.ip }}'" }
+    - { name: 'network.proxy.http_port', value: "{{ proxy_env.port }}" }
+    - { name: 'network.proxy.socks', value: "'{{ proxy_env.ip }}'" }
+    - { name: 'network.proxy.socks_port', value: "{{ proxy_env.port }}" }
+    - { name: 'network.proxy.ssl', value: "'{{ proxy_env.ip }}'" }
+    - { name: 'network.proxy.ssl_port', value: "{{ proxy_env.port }}" }
+    - { name: 'network.proxy.share_proxy_settings', value: 'true' }
+    - { name: 'network.proxy.no_proxies_on', value: "'{{ proxy_env.no_proxy }}'" }
+    - { name: 'browser.cache.disk.capacity', value: 20480 }
+    - { name: 'browser.cache.disk.smart_size.enabled', value: 'false' }
+    - { name: 'browser.cache.disk.smart_size.first_run', value: 'false' }
+    - { name: 'browser.cache.disk.smart_size.use_old_max', value: 'false' }
+

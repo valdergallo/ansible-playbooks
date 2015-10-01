@@ -1,0 +1,56 @@
+---
+- name: install Fluxbox requires the X Window System libraries and headers.
+  yum: name={{ item }} state=present
+  with_items:
+    - wget
+    - alsa-utils
+    - pciutils
+    - usbutils
+    - xdg-utils
+    - bind-utils
+    - lsb
+    - gtk2-devel
+    - zlib-devel
+    - glibc
+    - glib2
+    - glib2-devel
+    - gettext-devel
+  when: ansible_distribution == 'CentOS' or ansible_distribution == 'Red Hat Enterprise Linux'
+
+- name: install the 'X Window System' package group
+  yum: name="@X Window System" state=present
+
+- name: Ensure Fluxbox directories are present
+  file:
+    path: "{{ item }}"
+    mode: 0755
+    state: directory
+  sudo: yes
+  with_items:
+    - "{{ fluxbox.dir }}{{ fluxbox.tar_name }}"
+  tags: fluxbox
+
+- name: download Fluxbox source code
+  sudo: true
+  get_url:
+    url: "{{ fluxbox.download_url }}"
+    dest: "{{ fluxbox.dir }}"
+  environment: proxy_env
+  register: fluxbox_archive
+
+- name: Unarchive Fluxbox source code
+  sudo: true
+  unarchive:
+    src="{{ fluxbox.dir }}{{ fluxbox.tar_name }}.tar.gz"
+    dest="{{ fluxbox.dir }}"
+    copy=no
+  when: fluxbox_archive|changed
+
+- name: Build Compile Fluxbox
+  sudo: true
+  command: "chdir='{{ fluxbox.dir }}{{ fluxbox.tar_name }}/' {{ item }}"
+  with_items:
+    - "./configure --bindir=/usr/bin/"
+    - "make"
+    - "make install"
+  when: fluxbox_archive|changed

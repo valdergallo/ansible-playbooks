@@ -1,17 +1,25 @@
-- name: add http-proxy for internal hosts
-  lineinfile: dest=/etc/environment regexp="^http_proxy" line="http_proxy=\"{{ proxy_env.http_proxy }}/\""
+---
+- name: delete file nsnproxy.sh
+  file: src=/etc/profile.d/nsnproxy.sh state=absent
+  ignore_errors: True
 
-- name: add HTTP-PROXY for internal hosts
-  lineinfile: dest=/etc/environment regexp="^HTTP_PROXY" line="HTTP_PROXY=\"{{ proxy_env.http_proxy }}/\""
+- name: list yum.repos.d
+  raw: find /etc/yum.repos.d/ -type f -name "*.repo"
+  register: yum.repos
 
-- name: add https-proxy for internal hosts
-  lineinfile: dest=/etc/environment regexp="^https_proxy" line="https_proxy=\"{{ proxy_env.https_proxy }}/\""
+- name: remove proxy from yum.repos.d
+  lineinfile: dest={{ item }} state=absent regexp="^%proxy"
+  with_items: yum.repos.stdout_lines
 
-- name: add HTTPS-PROXY for internal hosts
-  lineinfile: dest=/etc/environment regexp="^HTTPS_PROXY" line="HTTPS_PROXY=\"{{ proxy_env.https_proxy }}/\""
-
-- name: add no_proxy for internal hosts
-  lineinfile: dest=/etc/environment regexp="^no_proxy" line="no_proxy=\"localhost,127.0.0.1,localaddress,.localdomain.com\""
-
-- name: add NO_PROXY for internal hosts
-  lineinfile: dest=/etc/environment regexp="^NO_PROXY" line="NO_PROXY=\"localhost,127.0.0.1,localaddress,.localdomain.com\""
+- name: add proxy for internal hosts
+  lineinfile:
+    dest="/etc/environment"
+    regexp="{{ item.name }}"
+    line="{{ item.value }}"
+  with_items:
+    - { name: "^http_proxy", value: "http_proxy='{{ proxy_env.http_proxy }}'" }
+    - { name: "^HTTP_PROXY", value: "HTTP_PROXY='{{ proxy_env.http_proxy }}'" }
+    - { name: "^https_proxy", value: "https_proxy='{{ proxy_env.https_proxy }}'" }
+    - { name: "^HTTPS_PROXY", value: "HTTPS_PROXY='{{ proxy_env.https_proxy }}'" }
+    - { name: "^no_proxy", value: "no_proxy='{{ proxy_env.no_proxy }}'" }
+    - { name: "^NO_PROXY", value: "NO_PROXY='{{ proxy_env.no_proxy }}'" }

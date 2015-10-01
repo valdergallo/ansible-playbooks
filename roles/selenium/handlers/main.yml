@@ -1,5 +1,4 @@
 ---
-
 - name: Restart Selenium services
   shell: supervisorctl restart all
 

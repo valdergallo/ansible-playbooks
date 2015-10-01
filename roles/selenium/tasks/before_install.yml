@@ -1,34 +1,28 @@
 ---
-
 - name: Ensure users and group are presents
   group:
-    name: "{{ selenium_group }}"
+    name: "{{ selenium_server.group }}"
     state: present
   sudo: yes
 
 - user:
-    name: "{{ selenium_user }}"
-    group: "{{ selenium_group }}"
+    name: "{{ selenium_server.user }}"
+    group: "{{ selenium_server.group }}"
     state: present
   sudo: yes
 
 - name: Ensure Selenium directories are present
   file:
     path: "{{ item }}"
-    owner: "{{ selenium_user }}"
-    group: "{{ selenium_group }}"
+    owner: "{{ selenium_server.user }}"
+    group: "{{ selenium_server.group }}"
     mode: 0755
     state: directory
   sudo: yes
   with_items:
-    - "{{ selenium_server_path }}"
-    - "{{ selenium_log_dir }}"
-
-- user:
-    name: "{{ default_user }}"
-    group: "{{ selenium_group }}"
-    state: present
-  sudo: yes
+    - "{{ selenium_server.server_path }}"
+    - "{{ selenium_server.log_dir }}"
+    - "{{ mozilla_dir }}"
 
 - name: Ensure Supervisor directories are present
   file:
@@ -40,5 +34,14 @@
     - "{{ supervisor.config.dir }}"
     - "{{ supervisor.config.conf }}"
     - "{{ supervisor.log.dir }}"
-    - "{{supervisor.runtime.dir}}"
+    - "{{ supervisor.runtime.dir }}"
   tags: supervisor
+
+- name: add display
+  lineinfile:
+    dest="/etc/environment"
+    regexp="^DISPLAY"
+    line="DISPLAY={{ selenium_server.xvfb.display }}"
+
+- name: epel repository enable
+  yum: name=epel-release state=latest

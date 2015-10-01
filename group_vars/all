@@ -9,6 +9,9 @@
 proxy_env:
     http_proxy: http://87.254.212.121:8080
     https_proxy: https://87.254.212.121:8080
+    ip: 87.254.212.121
+    port: 8080
+    no_proxy: localhost, 127.0.0.1, *.nsn.com
 
 default_user: nokia
 default_home_folder: /home

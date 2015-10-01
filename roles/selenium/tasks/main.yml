@@ -1,9 +1,10 @@
 ---
+- include: before_install.yml
+
 - name: "Install packages for selenium server for Ubuntu/Debian"
   apt: name={{ item }} state=latest
   with_items:
       - openjdk-7-jdk
-      - firefox
       - xvfb
       - fluxbox
       - x11-apps
@@ -18,25 +19,26 @@
   yum: name={{ item }} state=latest
   with_items:
       - java-1.7.0-openjdk
-      - firefox
       - xorg-x11-server-Xvfb
       - x11vnc
   when: ansible_distribution == 'CentOS' or ansible_distribution == 'Red Hat Enterprise Linux'
 
-- include: before_install.yml
-
 - name: Download Selenium server (Jar file)
   get_url:
-    url: "{{ selenium_download_url }}"
-    dest: "{{ selenium_server_path }}/{{ selenium_jar_file }}"
+    url: "{{ selenium_server.download_url }}"
+    dest: "{{ selenium_server.server_path }}/{{ selenium_server.jar_file }}"
   environment: proxy_env
   sudo: yes
 
 - name: Update owner
-  file: path={{ selenium_server_path }}/{{ selenium_jar_file }} owner={{ selenium_user }} group={{ selenium_group }}
+  file: path={{ selenium_server.server_path }}/{{ selenium_server.jar_file }} owner={{ selenium_server.user }} group={{ selenium_server.group }}
   sudo: yes
 
-- name: Create symlink
-  file: src={{ selenium_server_path }}/{{ selenium_jar_file }}  dest={{ selenium_server_path }}/{{ selenium_default_name }} state=link owner={{ selenium_user }} group={{ selenium_group }}
+- include: fluxbox.yml
+  when: ansible_distribution == 'CentOS' or ansible_distribution == 'Red Hat Enterprise Linux'
 
 - include: supervisord.yml
+
+- include: firewalld.yml
+
+- include: firefox.yml
