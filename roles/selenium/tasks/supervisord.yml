@@ -16,7 +16,7 @@
   when: ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'
 
 - name: install supervisor with easy_install
-  shell: pip install supervisor
+  pip: name='supervisor'
   sudo: "true"
   tags: supervisor
   environment: proxy_env

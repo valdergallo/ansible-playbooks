@@ -9,7 +9,6 @@
 
 - name: run create profile zina
   shell: "firefox -CreateProfile '{{ item }}'"
-  executable: "selenium"
   with_items:
     - "zina {{ mozilla_dir }}"
 
